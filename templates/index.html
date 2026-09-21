@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Bank-Benchmarking</title>
+  <meta name="description" content="Benchmarking liechtensteinischer Banken auf Basis der Geschäftsberichte, mit OCR-gestützter Kennzahlenextraktion.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><text x='16' y='22' font-family='system-ui' font-size='15' font-weight='700' fill='white' text-anchor='middle'>B</text></svg>">
+</head>
+<body>
+  <div class="loading-bar" id="loadingBar"></div>
+  <header class="topbar" id="topbar"></header>
+
+  <main class="wrap" id="app">
+    <div class="card">
+      <div class="flex">
+        <span class="spinner"></span>
+        <span class="secondary">Datenbestand wird geladen …</span>
+      </div>
+    </div>
+  </main>
+
+  <div class="tooltip" id="tooltip"></div>
+  <div class="toasts" id="toasts"></div>
+
+  <noscript>
+    <div class="wrap">
+      <div class="card">
+        <h2>JavaScript wird benötigt</h2>
+        <p class="card-desc">Diese Anwendung lädt ihre Daten dynamisch vom Server.
+        Bitte aktivieren Sie JavaScript.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

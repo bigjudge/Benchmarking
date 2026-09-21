@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bank-Benchmarking Liechtenstein – SIGMA Bank AG</title>
+<style>
+  :root {
+    --surface-1: #fcfcfb;
+    --page-plane: #f9f9f7;
+    --card-border: rgba(11,11,11,0.10);
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --accent: #2a78d6;
+    --accent-fill: rgba(42,120,214,0.14);
+    --accent-fill-strong: rgba(42,120,214,0.22);
+    --peer: #b9b8b2;
+    --peer-line: #c3c2b7;
+    --good: #0ca30c;
+    --good-bg: rgba(12,163,12,0.10);
+    --critical: #d03b3b;
+    --critical-bg: rgba(208,59,59,0.10);
+    --shadow: 0 1px 2px rgba(11,11,11,0.06), 0 4px 14px rgba(11,11,11,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1: #1a1a19;
+      --page-plane: #0d0d0d;
+      --card-border: rgba(255,255,255,0.10);
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --accent: #3987e5;
+      --accent-fill: rgba(57,135,229,0.18);
+      --accent-fill-strong: rgba(57,135,229,0.30);
+      --peer: #55534d;
+      --peer-line: #4b4a46;
+      --good: #0ca30c;
+      --good-bg: rgba(12,163,12,0.16);
+      --critical: #e66767;
+      --critical-bg: rgba(230,103,103,0.16);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 18px rgba(0,0,0,0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    line-height: 1.45;
+  }
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  header.top { margin-bottom: 22px; }
+  header.top h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  header.top .sub { color: var(--text-secondary); font-size: 0.92rem; }
+  .zielbank-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-fill); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 999px;
+    padding: 3px 12px; font-size: 0.82rem; font-weight: 600; margin-top: 8px;
+  }
+  .zielbank-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 1.02rem; margin: 0 0 4px; }
+  .card .card-desc { color: var(--text-secondary); font-size: 0.83rem; margin-bottom: 14px; }
+
+  /* controls */
+  .controls-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  .control-group { display: flex; flex-direction: column; gap: 6px; }
+  .control-group .glabel { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; max-width: 900px; }
+  .pill {
+    border: 1px solid var(--card-border); background: transparent; color: var(--text-secondary);
+    padding: 6px 13px; border-radius: 999px; font-size: 0.82rem; cursor: pointer;
+    font-family: inherit; transition: background .12s, color .12s, border-color .12s;
+    white-space: nowrap;
+  }
+  .pill:hover { background: var(--grid); }
+  .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .pill.na::after { content: " ·n/a"; opacity: .55; font-weight: 400; }
+  .year-toggle { display: flex; gap: 4px; background: var(--grid); border-radius: 8px; padding: 3px; }
+  .year-toggle button {
+    border: none; background: transparent; color: var(--text-secondary); padding: 6px 16px;
+    border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-family: inherit;
+  }
+  .year-toggle button.active { background: var(--surface-1); color: var(--text-primary); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.12); }
+
+  .peer-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .peer-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--card-border); border-radius: 999px; padding: 4px 10px 4px 6px;
+    font-size: 0.8rem; cursor: pointer; user-select: none; color: var(--text-secondary);
+    background: transparent;
+  }
+  .peer-chip.zielbank { cursor: default; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .peer-chip input { accent-color: var(--accent); cursor: pointer; }
+  .peer-chip.off { opacity: 0.45; text-decoration: line-through; }
+  .peer-chip .swatch { width: 9px; height: 9px; border-radius: 2px; background: var(--peer); flex-shrink:0; }
+  .peer-chip.zielbank .swatch { background: var(--accent); }
+
+  /* tiles */
+  .tiles-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile { border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; background: var(--page-plane); }
+  .tile .tlabel { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 4px; }
+  .tile .tvalue { font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile.target { border-color: var(--accent); background: var(--accent-fill); }
+  .tile.target .tvalue { color: var(--accent); }
+  .tile .tsub { font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px; }
+
+  /* ranking bars */
+  .rank-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; position: relative; }
+  .rank-label { width: 210px; flex-shrink: 0; font-size: 0.83rem; color: var(--text-secondary); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-row.target .rank-label { color: var(--accent); font-weight: 700; }
+  .rank-track { flex: 1; background: var(--grid); border-radius: 4px; height: 22px; position: relative; overflow: visible; }
+  .rank-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 0 4px 4px 0; background: var(--peer); cursor: pointer; transition: filter .1s; }
+  .rank-row.target .rank-fill { background: var(--accent); }
+  .rank-fill:hover { filter: brightness(1.08); }
+  .rank-value { margin-left: 8px; font-size: 0.8rem; font-variant-numeric: tabular-nums; color: var(--text-secondary); white-space: nowrap; }
+  .rank-row.target .rank-value { color: var(--accent); font-weight: 700; }
+  .rank-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; }
+  .rank-marker.avg { background: var(--text-muted); }
+  .rank-marker-label { position: absolute; top: -18px; font-size: 0.66rem; color: var(--text-muted); white-space: nowrap; transform: translateX(-50%); }
+  .empty-state { color: var(--text-muted); font-size: 0.88rem; padding: 24px 4px; text-align: center; border: 1px dashed var(--grid); border-radius: 8px; }
+
+  /* table */
+  .table-scroll { overflow-x: auto; }
+  table.cmp { border-collapse: collapse; width: 100%; font-size: 0.82rem; min-width: 900px; }
+  table.cmp th, table.cmp td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); }
+  table.cmp th:first-child, table.cmp td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface-1); }
+  table.cmp th { color: var(--text-muted); font-weight: 600; cursor: pointer; user-select: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .02em; }
+  table.cmp th:hover { color: var(--text-primary); }
+  table.cmp th.sorted { color: var(--accent); }
+  table.cmp tr.target td { background: var(--accent-fill); font-weight: 700; }
+  table.cmp tr.target td:first-child { background: var(--accent-fill); border-left: 3px solid var(--accent); }
+  table.cmp tr.hidden-row { display: none; }
+  table.cmp td.na { color: var(--text-muted); font-style: italic; }
+
+  /* timeseries */
+  .ts-svg-wrap { width: 100%; overflow-x: auto; }
+  .ts-tooltip {
+    position: fixed; pointer-events: none; background: var(--surface-1); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 8px 11px; font-size: 0.78rem; box-shadow: var(--shadow); z-index: 50;
+    max-width: 260px; display: none;
+  }
+  .ts-tooltip .tt-title { font-weight: 700; margin-bottom: 4px; }
+  .ts-tooltip .tt-row { display: flex; justify-content: space-between; gap: 12px; }
+  .ts-tooltip .tt-row.target { color: var(--accent); font-weight: 700; }
+  .ts-tooltip .tt-src { color: var(--text-muted); font-size: 0.72rem; margin-top: 4px; }
+
+  /* insights */
+  .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .insights-grid { grid-template-columns: 1fr; } }
+  .insight-item { display: flex; gap: 8px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 0.85rem; }
+  .insight-item:last-child { border-bottom: none; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 0.76rem; padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
+  .badge.good { color: var(--good); background: var(--good-bg); }
+  .badge.critical { color: var(--critical); background: var(--critical-bg); }
+  .insight-col h3 { font-size: 0.88rem; margin: 0 0 8px; }
+
+  /* kpi groups */
+  .kpi-group { margin-bottom: 10px; }
+  .kpi-group-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
+
+  /* untersuchungsbereiche */
+  .ub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .ub-card { border: 1px solid var(--card-border); border-radius: 10px; padding: 14px 16px; background: var(--page-plane); display: flex; flex-direction: column; gap: 8px; }
+  .ub-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-fill); color: var(--accent); font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+  .ub-title { font-size: 0.9rem; font-weight: 700; display: flex; gap: 8px; align-items: flex-start; }
+  .ub-desc { font-size: 0.8rem; color: var(--text-secondary); }
+  .ub-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .ub-chip {
+    font-size: 0.72rem; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-fill);
+    padding: 2px 9px; border-radius: 999px; cursor: pointer; font-family: inherit;
+  }
+  .ub-chip:hover { background: var(--accent-fill-strong); }
+  .ub-gap { font-size: 0.78rem; color: var(--text-muted); border-top: 1px dashed var(--grid); padding-top: 7px; margin-top: 2px; }
+  .ub-gap strong { color: var(--critical); font-weight: 600; }
+  .ub-nogap { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+
+  /* methodik */
+  .methodik ul { padding-left: 20px; font-size: 0.85rem; color: var(--text-secondary); }
+  .methodik li { margin-bottom: 7px; }
+  .methodik .filelist { columns: 2; column-gap: 24px; font-size: 0.83rem; color: var(--text-secondary); }
+  @media (max-width: 700px) { .methodik .filelist { columns: 1; } }
+  .methodik code { background: var(--grid); padding: 1px 5px; border-radius: 4px; font-size: 0.82em; }
+
+  footer.foot { text-align: center; color: var(--text-muted); font-size: 0.78rem; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Bank-Benchmarking Liechtenstein</h1>
+    <div class="sub">Vergleich von 9 liechtensteinischen Banken auf Basis der Geschäftsberichte 2025 (mit Vorjahresvergleich 2024, soweit ausgewiesen)</div>
+    <div class="zielbank-badge"><span class="dot"></span>Zielbank: SIGMA Bank AG</div>
+  </header>
+
+  <section class="card">
+    <h2>Kennzahl &amp; Jahr wählen</h2>
+    <div class="card-desc">Kennzahlen ohne Daten sind mit „n/a“ markiert und zeigen einen leeren Zustand statt geschätzter Werte.</div>
+    <div class="controls-bar">
+      <div class="control-group">
+        <div class="glabel">Kennzahl</div>
+        <div class="pill-row" id="kpiPills"></div>
+      </div>
+      <div class="control-group">
+        <div class="glabel">Berichtsjahr</div>
+        <div class="year-toggle" id="yearToggle"></div>
+      </div>
+    </div>
+    <div class="control-group" style="margin-top:16px;">
+      <div class="glabel">Peer-Banken ein-/ausblenden</div>
+      <div class="peer-filter" id="peerFilter"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 id="tilesTitle">Positionierung</h2>
+    <div class="card-desc" id="tilesDesc"></div>
+    <div class="tiles-row" id="tilesRow"></div>
+  </section>
+
+  <section class="card">
+    <h2 id="rankTitle">Ranking-Vergleich</h2>
+    <div class="card-desc">Zielbank in Akzentfarbe, Peer-Banken neutral. Grauer Strich = Peer-Durchschnitt. Klick/Hover auf einen Balken für Details &amp; Quelle.</div>
+    <div id="rankChart"></div>
+  </section>
+
+  <section class="card">
+    <h2>Zeitverlauf 2024 → 2025</h2>
+    <div class="card-desc">Zielbank hervorgehoben (dick), Peer-Banken dünn/neutral. Hover auf einen Jahrespunkt zeigt alle Werte.</div>
+    <div class="ts-svg-wrap" id="tsWrap"></div>
+  </section>
+
+  <section class="card">
+    <h2>Vergleichstabelle – alle Banken &amp; Kennzahlen (<span id="tableYearLabel"></span>)</h2>
+    <div class="card-desc">Spaltenkopf klicken zum Sortieren. Zielbank-Zeile ist farblich hervorgehoben.</div>
+    <div class="table-scroll"><table class="cmp" id="cmpTable"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Stärken &amp; Schwächen – SIGMA Bank AG (<span id="insightYearLabel"></span>)</h2>
+    <div class="card-desc">Automatisch generiert: Abweichung des Zielbank-Werts vom Durchschnitt der sichtbaren Peer-Banken je Kennzahl.</div>
+    <div class="insights-grid">
+      <div class="insight-col">
+        <h3>Über dem Peer-Durchschnitt</h3>
+        <div id="strengthsList"></div>
+      </div>
+      <div class="insight-col">
+        <h3>Unter dem Peer-Durchschnitt</h3>
+        <div id="weaknessesList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Verknüpfung mit den 7 Untersuchungsbereichen</h2>
+    <div class="card-desc">Ordnet die 7 zentralen Untersuchungsbereiche des Vorgehensmodells den im Dashboard verfügbaren Kennzahlen zu und macht transparent, was aus öffentlichen Geschäftsberichten <em>nicht</em> ableitbar ist. Klick auf eine Kennzahl springt zur Kennzahl-Auswahl oben.</div>
+    <div class="ub-grid" id="ubGrid"></div>
+  </section>
+
+  <section class="card methodik" id="methodikSection">
+    <h2>Methodik &amp; Quellen</h2>
+    <p style="font-size:0.87rem; color:var(--text-secondary);">Alle Werte stammen ausschliesslich aus den unten genannten Geschäftsberichten. Es wurde nichts geschätzt oder berechnet — fehlende Kennzahlen sind konsequent als „n/a“ ausgewiesen.</p>
+    <p style="font-size:0.83rem; font-weight:600; margin-bottom:6px;">Verwendete Dateien</p>
+    <div class="filelist" id="fileList"></div>
+    <p style="font-size:0.83rem; font-weight:600; margin:16px 0 6px;">Einschränkungen</p>
+    <ul id="limitList"></ul>
+  </section>
+
+  <footer class="foot">Erstellt am 2026-07-10 · Quellordner „Kontext Ordner Lichtensteiner Banken“ · Keine externen Annahmen, nur Berichtsdaten</footer>
+</div>
+
+<div class="ts-tooltip" id="tsTooltip"></div>
+
+<script>
+const DATA = {
+  "meta": {
+    "zielbank": "SIGMA Bank AG",
+    "erstelltAm": "2026-07-10",
+    "berichtsjahre": ["2024", "2025"],
+    "waehrung": "CHF",
+    "quellordner": "Kontext Ordner Lichtensteiner Banken",
+    "hinweis": "Alle Werte stammen ausschliesslich aus den jeweiligen Geschäftsberichten 2025 (mit Vorjahresvergleich 2024, soweit im Bericht ausgewiesen). Nichts wurde geschätzt oder berechnet; fehlende Werte sind als n/a gekennzeichnet."
+  },
+  "kpiDefinitionen": {
+    "bilanzsumme": { "label": "Bilanzsumme", "unit": "CHF Mio.", "hoeherIstBesser": true, "kategorie": "kern" },
+    "eigenkapitalquote": { "label": "Eigenkapitalquote (bilanziell)", "unit": "%", "hoeherIstBesser": true, "kategorie": "kern" },
+    "cet1Quote": { "label": "CET1- / Kernkapitalquote", "unit": "%", "hoeherIstBesser": true, "kategorie": "kern" },
+    "roe": { "label": "Return on Equity (RoE)", "unit": "%", "hoeherIstBesser": true, "kategorie": "kern" },
+    "cir": { "label": "Cost-Income-Ratio (CIR)", "unit": "%", "hoeherIstBesser": false, "kategorie": "kern" },
+    "nettozinsmarge": { "label": "Nettozinsmarge", "unit": "%", "hoeherIstBesser": true, "kategorie": "kern" },
+    "kreditvolumen": { "label": "Kreditvolumen (Forderungen ggü. Kunden)", "unit": "CHF Mio.", "hoeherIstBesser": true, "kategorie": "kern" },
+    "kundeneinlagen": { "label": "Kundeneinlagen", "unit": "CHF Mio.", "hoeherIstBesser": true, "kategorie": "kern" },
+    "nplQuote": { "label": "NPL-Quote", "unit": "%", "hoeherIstBesser": false, "kategorie": "kern" },
+    "jahresueberschuss": { "label": "Jahresüberschuss", "unit": "CHF Mio.", "hoeherIstBesser": true, "kategorie": "kern" },
+    "mitarbeiterzahl": { "label": "Mitarbeiterzahl (FTE)", "unit": "FTE", "hoeherIstBesser": null, "kategorie": "kern" },
+    "aum": { "label": "Verwaltete Kundenvermögen (AuM)", "unit": "CHF Mio.", "hoeherIstBesser": true, "kategorie": "kern" },
+    "leverageRatio": { "label": "Leverage Ratio", "unit": "%", "hoeherIstBesser": true, "kategorie": "kern" },
+    "lcr": { "label": "Liquidity Coverage Ratio (LCR)", "unit": "%", "hoeherIstBesser": true, "kategorie": "kern" },
+    "personalaufwand": { "label": "Personalaufwand", "unit": "CHF Mio.", "hoeherIstBesser": null, "kategorie": "struktur" },
+    "sachaufwand": { "label": "Sachaufwand / Geschäftsaufwand", "unit": "CHF Mio.", "hoeherIstBesser": null, "kategorie": "struktur" },
+    "zinserfolg": { "label": "Zinserfolg", "unit": "CHF Mio.", "hoeherIstBesser": null, "kategorie": "struktur" },
+    "kommissionserfolg": { "label": "Kommissionserfolg", "unit": "CHF Mio.", "hoeherIstBesser": null, "kategorie": "struktur" },
+    "handelserfolg": { "label": "Handelserfolg", "unit": "CHF Mio.", "hoeherIstBesser": null, "kategorie": "struktur" },
+    "anzahlGeschaeftsleitung": { "label": "Geschäftsleitung (Mitglieder)", "unit": "Anzahl", "hoeherIstBesser": null, "kategorie": "struktur" },
+    "anzahlVerwaltungsrat": { "label": "Verwaltungsrat (Mitglieder)", "unit": "Anzahl", "hoeherIstBesser": null, "kategorie": "struktur" },
+    "anzahlStandorte": { "label": "Standorte / Niederlassungen", "unit": "Anzahl", "hoeherIstBesser": null, "kategorie": "struktur" }
+  },
+  "banken": [
+    {
+      "name": "SIGMA Bank AG",
+      "istZielbank": true,
+      "quelldatei": "Geschäftsbericht_2025_-_SIGMA_Gruppe_-_SIGMA_Bank_AG.pdf",
+      "basis": "Konsolidierte SIGMA-Gruppe (SIGMA Bank AG + 100%-Tochter SIGMA KREDITBANK AG, Konsumkredite Deutschland)",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 977.6, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz, S. 15-16" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a – keine %-Quote ausgewiesen" },
+          "cet1Quote": { "value": null, "unit": "%", "source": "n/a – keine CET1/Tier1-Quote im Geschäftsbericht offengelegt" },
+          "roe": { "value": null, "unit": "%", "source": "n/a – nur 'Kapitalrendite' (methodisch RoA) ausgewiesen, siehe weitere.kapitalrenditeRoA" },
+          "cir": { "value": null, "unit": "%", "source": "n/a – keine CIR-Prozentkennzahl, nur absolute Aufwands-/Ertragspositionen" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 622.0, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz, S. 15-16 (Forderungen ggü. Kunden)" },
+          "kundeneinlagen": { "value": 551.2, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz, S. 15-16" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a – siehe weitere.gefaehrdeteForderungenNettoKonzern" },
+          "jahresueberschuss": { "value": 0.16, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 15-18" },
+          "mitarbeiterzahl": { "value": 130.6, "unit": "FTE (Gruppe)", "source": "Anhang Personal, S. ca. 19" },
+          "personalaufwand": { "value": 22.43, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 16 (Anhang S. 44 weist abweichend 22.42 Mio. aus, Diskrepanz im Bericht)" },
+          "sachaufwand": { "value": 21.57, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 16 (Anhang S. 45 weist abweichend 21.81 Mio. aus, Diskrepanz im Bericht)" },
+          "zinserfolg": { "value": 44.74, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 10/16" },
+          "kommissionserfolg": { "value": 13.60, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 10/16" },
+          "handelserfolg": { "value": 2.78, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 10/16/44" },
+          "anzahlGeschaeftsleitung": { "value": 4, "unit": "Anzahl", "source": "S. 7, 55 (Bankorgane per 31.12.2025)" },
+          "anzahlVerwaltungsrat": { "value": 6, "unit": "Anzahl", "source": "S. 7, 55 (Bankorgane per 31.12.2025)" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a – nur 1 Adresse (Schaan) genannt" },
+          "weitere": {
+            "aum": { "value": 2361.8, "unit": "CHF Mio.", "source": "Konsolidierte Ausserbilanzgeschäfte, S. 16" },
+            "kapitalrenditeRoA_Konzern": { "value": 0.02, "unit": "%", "source": "S. 45-46 (Jahresgewinn/Bilanzsumme, methodisch RoA, nicht RoE)" },
+            "gefaehrdeteForderungenNettoKonzern": { "value": 252.4, "unit": "CHF Mio.", "source": "Anhang Gefährdete Forderungen, S. ca. 24" },
+            "einzelabschluss_bilanzsumme": { "value": 737.3, "unit": "CHF Mio.", "source": "Bilanz Einzelabschluss SIGMA Bank AG (ohne Tochter), S. 61-62" },
+            "einzelabschluss_jahresueberschuss": { "value": 2.80, "unit": "CHF Mio.", "source": "Erfolgsrechnung Einzelabschluss, S. 63-64" },
+            "einzelabschluss_mitarbeiterzahl": { "value": 67.9, "unit": "FTE", "source": "Anhang Einzelabschluss, S. ca. 67" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 1099.9, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz, S. 15-16" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": null, "unit": "%", "source": "n/a" },
+          "roe": { "value": null, "unit": "%", "source": "n/a" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 707.8, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz, S. 15-16" },
+          "kundeneinlagen": { "value": 655.7, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz, S. 15-16" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 2.61, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 15-18" },
+          "mitarbeiterzahl": { "value": 134.0, "unit": "FTE (Gruppe)", "source": "Anhang Personal, S. ca. 19" },
+          "personalaufwand": { "value": 21.93, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 16/44" },
+          "sachaufwand": { "value": 23.72, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 16 (Anhang S. 45: 23.73 Mio., minimale Rundungsdifferenz)" },
+          "zinserfolg": { "value": 49.83, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 16" },
+          "kommissionserfolg": { "value": 13.77, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 16" },
+          "handelserfolg": { "value": 2.75, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 16" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – für 2024 nicht separat als Stichtagszahl ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – für 2024 nicht separat als Stichtagszahl ausgewiesen" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "aum": { "value": 3063.0, "unit": "CHF Mio.", "source": "Konsolidierte Ausserbilanzgeschäfte, S. 16" },
+            "kapitalrenditeRoA_Konzern": { "value": 0.24, "unit": "%", "source": "S. 45-46" },
+            "gefaehrdeteForderungenNettoKonzern": { "value": 243.4, "unit": "CHF Mio.", "source": "S. ca. 24" }
+          }
+        }
+      }
+    },
+    {
+      "name": "Bendura Bank AG",
+      "istZielbank": false,
+      "quelldatei": "2025_Geschaeftsbericht-BENDURA-BANK-AG.pdf",
+      "basis": "Einzelabschluss",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 1646.3, "unit": "CHF Mio.", "source": "Bilanz S. 26; Key figures S. 2" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 24.1, "unit": "%", "source": "Key figures S. 2 (Tier 1 = Total capital ratio)" },
+          "roe": { "value": 9.9, "unit": "%", "source": "Key figures S. 2" },
+          "cir": { "value": 63.9, "unit": "%", "source": "Key figures S. 2" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a – nur Nettozinsertrag absolut CHF 28.7 Mio." },
+          "kreditvolumen": { "value": 319.9, "unit": "CHF Mio.", "source": "Bilanz S. 26/27" },
+          "kundeneinlagen": { "value": 1500.3, "unit": "CHF Mio.", "source": "Bilanz S. 28/29" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 12.8, "unit": "CHF Mio.", "source": "Key figures S. 2" },
+          "mitarbeiterzahl": { "value": 129.9, "unit": "FTE", "source": "Key figures S. 2" },
+          "personalaufwand": { "value": 23.67, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35 ('Personalaufwand')" },
+          "sachaufwand": { "value": 11.45, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35 ('Sachaufwand'); keine separate Position 'Outsourcing'/'Dienstleistungen Dritter'" },
+          "zinserfolg": { "value": 28.70, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35 ('Total Erfolg aus dem Zinsengeschäft')" },
+          "kommissionserfolg": { "value": 21.08, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35 ('Total Erfolg aus dem Kommissions- und Dienstleistungsgeschäft')" },
+          "handelserfolg": { "value": 4.30, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35 (Erfolg aus Finanzgeschäften, davon Handelsgeschäfte)" },
+          "anzahlGeschaeftsleitung": { "value": 4, "unit": "Anzahl", "source": "S. 6-7 ('Die Geschäftsleitung besteht aus vier Mitgliedern')" },
+          "anzahlVerwaltungsrat": { "value": 7, "unit": "Anzahl", "source": "S. 6-7 (Organübersicht)" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a – Sitz Bendern + Repräsentanz Hongkong genannt, aber keine explizite Gesamtzahl" },
+          "weitere": {
+            "aum": { "value": 4047.3, "unit": "CHF Mio.", "source": "Key figures S. 2 (Total client assets)" },
+            "nettoNeugeld": { "value": 550.2, "unit": "CHF Mio.", "source": "Key figures S. 2" },
+            "leverageRatio": { "value": 6.3, "unit": "%", "source": "Lagebericht Eigenmittelmanagement" },
+            "lcr": { "value": 635.4, "unit": "%", "source": "Lagebericht Eigenmittelmanagement" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 1582.7, "unit": "CHF Mio.", "source": "Key figures S. 2" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 20.5, "unit": "%", "source": "Key figures S. 2" },
+          "roe": { "value": 10.2, "unit": "%", "source": "Key figures S. 2" },
+          "cir": { "value": 63.7, "unit": "%", "source": "Key figures S. 2" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 311.3, "unit": "CHF Mio.", "source": "Bilanz Vorjahresspalte" },
+          "kundeneinlagen": { "value": 1437.9, "unit": "CHF Mio.", "source": "Bilanz Vorjahresspalte" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 12.6, "unit": "CHF Mio.", "source": "Key figures S. 2" },
+          "mitarbeiterzahl": { "value": 131.7, "unit": "FTE", "source": "Key figures S. 2" },
+          "personalaufwand": { "value": 24.26, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35, Vorjahresspalte" },
+          "sachaufwand": { "value": 11.43, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35, Vorjahresspalte" },
+          "zinserfolg": { "value": 32.27, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35, Vorjahresspalte" },
+          "kommissionserfolg": { "value": 19.52, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35, Vorjahresspalte" },
+          "handelserfolg": { "value": 3.65, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 34-35, Vorjahresspalte" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – im Bericht nicht separat für 2024 ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – im Bericht nicht separat für 2024 ausgewiesen" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "aum": { "value": 3457.2, "unit": "CHF Mio.", "source": "Key figures S. 2" },
+            "nettoNeugeld": { "value": 142.1, "unit": "CHF Mio.", "source": "Key figures S. 2" }
+          }
+        }
+      }
+    },
+    {
+      "name": "Bank Frick & Co. AG",
+      "istZielbank": false,
+      "quelldatei": "Bank_Frick_Geschaeftsbericht_25_DE_2026-4.pdf",
+      "basis": "Konsolidiert (Konzern)",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 2780.0, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 68" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 15.3, "unit": "%", "source": "Lagebericht Eigenmittelmanagement" },
+          "roe": { "value": 7.9, "unit": "%", "source": "Chart 'Eigenkapitalrendite', S. 6/7" },
+          "cir": { "value": 83.3, "unit": "%", "source": "Lagebericht S. 12/13" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a – nur Nettozinsertrag absolut CHF 42.8 Mio." },
+          "kreditvolumen": { "value": 493.9, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 68" },
+          "kundeneinlagen": { "value": 2489.9, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 67" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 9.1, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 69" },
+          "mitarbeiterzahl": { "value": 274.6, "unit": "FTE", "source": "Lagebericht Personalbestand (302 Mitarbeitende / 274.6 FTE)" },
+          "personalaufwand": { "value": 50.60, "unit": "CHF Mio.", "source": "Erfolgsrechnung Einzelabschluss, S. 24-25; Anhang S. 56-57 (Konzern-Gesamtaufwand liegt nur unwesentlich höher)" },
+          "sachaufwand": { "value": 26.49, "unit": "CHF Mio.", "source": "Erfolgsrechnung Einzelabschluss, S. 24-25; Anhang S. 56-57; keine separate Position 'Outsourcing'/'Dienstleistungen Dritter'" },
+          "zinserfolg": { "value": 42.8, "unit": "CHF Mio.", "source": "Bericht des Verwaltungsrats, S. 14-15 (Nettozinsertrag im Fliesstext; keine separate Summenzeile in der Tabelle)" },
+          "kommissionserfolg": { "value": 18.4, "unit": "CHF Mio.", "source": "Bericht des Verwaltungsrats, S. 14-15 (Nettoertrag im Fliesstext)" },
+          "handelserfolg": { "value": 29.05, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 24-25; Anhang S. 56-57" },
+          "anzahlGeschaeftsleitung": { "value": 3, "unit": "Anzahl", "source": "S. 8-9, 36-37 ('drei Mitglieder der Geschäftsleitung')" },
+          "anzahlVerwaltungsrat": { "value": 3, "unit": "Anzahl", "source": "S. 8-9, 38-39" },
+          "anzahlStandorte": { "value": 3, "unit": "Anzahl", "source": "Impressum; Lagebericht S. 14-15/17 (Balzers HQ, London UK Branch, Dubai DIFC Branch seit Dez. 2025)" },
+          "weitere": {
+            "aum": { "value": 7600, "unit": "CHF Mio.", "source": "Lagebericht Verwaltetes Vermögen" },
+            "leverageRatio": { "value": 4.2, "unit": "%", "source": "Lagebericht Eigenmittelmanagement" },
+            "lcr": { "value": 146, "unit": "%", "source": "Lagebericht Eigenmittelmanagement" },
+            "nsfr": { "value": 158, "unit": "%", "source": "Lagebericht Eigenmittelmanagement" },
+            "mitarbeiterKopfzahl": { "value": 302, "unit": "Anzahl", "source": "Lagebericht Personalbestand" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 2881.7, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 68, Vorjahr" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 16.1, "unit": "%", "source": "Chart S. 6/7 (geringere Konfidenz, aus Balkengrafik)" },
+          "roe": { "value": 8.3, "unit": "%", "source": "Chart S. 6/7 (geringere Konfidenz, aus Balkengrafik)" },
+          "cir": { "value": 71.4, "unit": "%", "source": "Lagebericht S. 12/13" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 547.4, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 68, Vorjahr" },
+          "kundeneinlagen": { "value": 2643.5, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 67, Vorjahr" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 9.5, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 69, Vorjahr" },
+          "mitarbeiterzahl": { "value": 241, "unit": "FTE", "source": "Lagebericht Personalbestand (266 Mitarbeitende / 241 FTE)" },
+          "personalaufwand": { "value": 48.40, "unit": "CHF Mio.", "source": "Erfolgsrechnung Einzelabschluss, Vorjahresspalte" },
+          "sachaufwand": { "value": 25.84, "unit": "CHF Mio.", "source": "Erfolgsrechnung Einzelabschluss, Vorjahresspalte" },
+          "zinserfolg": { "value": null, "unit": "CHF Mio.", "source": "n/a – exakter Vorjahreswert im Fliesstext nicht genannt (nur Wachstumsangabe)" },
+          "kommissionserfolg": { "value": 17.3, "unit": "CHF Mio.", "source": "Bericht des Verwaltungsrats, S. 14-15 (Fliesstext)" },
+          "handelserfolg": { "value": 29.33, "unit": "CHF Mio.", "source": "Erfolgsrechnung, Vorjahresspalte" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – für 2024 nicht separat rückwirkend ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – für 2024 nicht separat rückwirkend ausgewiesen" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "aum": { "value": 8584, "unit": "CHF Mio.", "source": "Lagebericht Verwaltetes Vermögen (angepasste Vorjahreszahl)" },
+            "mitarbeiterKopfzahl": { "value": 266, "unit": "Anzahl", "source": "Lagebericht Personalbestand" }
+          }
+        }
+      }
+    },
+    {
+      "name": "Liechtensteinische Landesbank AG",
+      "istZielbank": false,
+      "quelldatei": "Liechtensteinische Landesbank  AG_GB25.pdf",
+      "basis": "Konsolidiert (Konzern, IFRS)",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 28318, "unit": "CHF Mio.", "source": "Kennzahlen S. 4 / Konsolidierte Bilanz S. 209" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a – nur Tier-1-Ratio" },
+          "cet1Quote": { "value": 19.0, "unit": "%", "source": "Kennzahlen S. 4 (Tier-1 = CET1, da nur hartes Kernkapital)" },
+          "roe": { "value": 7.3, "unit": "%", "source": "Kennzahlen S. 4" },
+          "cir": { "value": 67.0, "unit": "%", "source": "Kennzahlen S. 4" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 17013.8, "unit": "CHF Mio.", "source": "Kennzahlen S. 4 / Note 13 S. 233" },
+          "kundeneinlagen": { "value": 21208.9, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 209" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a – nur absolute ECL von CHF 59.5 Mio." },
+          "jahresueberschuss": { "value": 166.5, "unit": "CHF Mio.", "source": "Kennzahlen S. 4 (Konzernergebnis)" },
+          "mitarbeiterzahl": { "value": 1294, "unit": "FTE", "source": "Kennzahlen S. 4" },
+          "personalaufwand": { "value": 256.15, "unit": "CHF Mio.", "source": "Konzern-Erfolgsrechnung, Anmerkung 6, S. 229" },
+          "sachaufwand": { "value": 113.79, "unit": "CHF Mio.", "source": "Konzern-Erfolgsrechnung, Anmerkung 7, S. 230; keine separate Position 'Outsourcing' (IT in 'EDV, Maschinen, Einrichtungen' enthalten)" },
+          "zinserfolg": { "value": 122.94, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 207 (vor erwarteten Kreditverlusten)" },
+          "kommissionserfolg": { "value": 259.18, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 207" },
+          "handelserfolg": { "value": 219.66, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 207" },
+          "anzahlGeschaeftsleitung": { "value": 4, "unit": "Anzahl", "source": "S. 82, 163 (Stand 31.12.2025; ab 12.01.2026 nach FMA-Zustimmung für weiteres Mitglied: 5)" },
+          "anzahlVerwaltungsrat": { "value": 7, "unit": "Anzahl", "source": "S. 59, 81" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a – keine Gesamtzahl; genannt: Hauptsitz Vaduz + Geschäftsstellen Balzers/Eschen sowie Repräsentanzen/Zweigniederlassungen Zürich, Genf, München, Frankfurt, Düsseldorf (S. 321)" },
+          "weitere": {
+            "aum": { "value": 108861, "unit": "CHF Mio.", "source": "Kennzahlen S. 4 (Kundenvermögen)" },
+            "geschaeftsvolumen": { "value": 125875, "unit": "CHF Mio.", "source": "Kennzahlen S. 4" },
+            "nettoNeugeld": { "value": 3703, "unit": "CHF Mio.", "source": "Kennzahlen S. 4" },
+            "leverageRatio": { "value": 6.7, "unit": "%", "source": "Regulatorische Offenlegung S. 284" },
+            "lcr": { "value": 149.9, "unit": "%", "source": "Regulatorische Offenlegung S. 284" },
+            "nsfr": { "value": 156.5, "unit": "%", "source": "Regulatorische Offenlegung S. 284" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 27663.6, "unit": "CHF Mio.", "source": "Kennzahlen S. 4 (angepasst)" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 18.7, "unit": "%", "source": "Kennzahlen S. 4 (angepasst)" },
+          "roe": { "value": 7.7, "unit": "%", "source": "Kennzahlen S. 4" },
+          "cir": { "value": 66.4, "unit": "%", "source": "Kennzahlen S. 4" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 16488.9, "unit": "CHF Mio.", "source": "Kennzahlen S. 4" },
+          "kundeneinlagen": { "value": 20644.5, "unit": "CHF Mio.", "source": "Konsolidierte Bilanz S. 209, Vorjahr" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a – ECL Vorjahr CHF 61.0 Mio." },
+          "jahresueberschuss": { "value": 167.2, "unit": "CHF Mio.", "source": "Kennzahlen S. 4" },
+          "mitarbeiterzahl": { "value": 1286, "unit": "FTE", "source": "Kennzahlen S. 4" },
+          "personalaufwand": { "value": 234.72, "unit": "CHF Mio.", "source": "Konzern-Erfolgsrechnung, S. 229" },
+          "sachaufwand": { "value": 98.45, "unit": "CHF Mio.", "source": "Konzern-Erfolgsrechnung, S. 230" },
+          "zinserfolg": { "value": 134.10, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 207" },
+          "kommissionserfolg": { "value": 214.00, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 207" },
+          "handelserfolg": { "value": 199.85, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung, S. 207" },
+          "anzahlGeschaeftsleitung": { "value": 5, "unit": "Anzahl", "source": "Tabelle 'Geschlechterverteilung auf der obersten Führungsebene', S. 163 (Stand 31.12.2024)" },
+          "anzahlVerwaltungsrat": { "value": 7, "unit": "Anzahl", "source": "S. 59" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "aum": { "value": 96983, "unit": "CHF Mio.", "source": "Kennzahlen S. 4" },
+            "geschaeftsvolumen": { "value": 113472, "unit": "CHF Mio.", "source": "Kennzahlen S. 4" },
+            "nettoNeugeld": { "value": 2789, "unit": "CHF Mio.", "source": "Kennzahlen S. 4" },
+            "leverageRatio": { "value": 6.5, "unit": "%", "source": "Regulatorische Offenlegung S. 284" },
+            "lcr": { "value": 157.7, "unit": "%", "source": "Regulatorische Offenlegung S. 284" },
+            "nsfr": { "value": 157.6, "unit": "%", "source": "Regulatorische Offenlegung S. 284" }
+          }
+        }
+      }
+    },
+    {
+      "name": "LGT Bank AG",
+      "istZielbank": false,
+      "quelldatei": "Annual-Report-2025-LGT-Bank-Vaduz-de.pdf",
+      "basis": "Einzelabschluss inkl. ausländische Betriebsstätten (kein Konzernabschluss auf dieser Ebene)",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 43892.6, "unit": "CHF Mio.", "source": "S. 5 / S. 8" },
+          "eigenkapitalquote": { "value": 21.2, "unit": "%", "source": "S. 5/6 ('Eigenkapitalquote der risikogewichteten Aktiven')" },
+          "cet1Quote": { "value": 21.2, "unit": "%", "source": "S. 5 (nur eine Kernkapitalquote ausgewiesen, keine separate CET1/Tier1-Aufschlüsselung)" },
+          "roe": { "value": null, "unit": "%", "source": "n/a – siehe weitere.kapitalrenditeROA" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 14991.9, "unit": "CHF Mio.", "source": "S. 5/8" },
+          "kundeneinlagen": { "value": 23066.6, "unit": "CHF Mio.", "source": "S. 8 / Anhang 24" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a – siehe weitere.gefaehrdeteForderungenBrutto" },
+          "jahresueberschuss": { "value": 226.8, "unit": "CHF Mio.", "source": "S. 5/10" },
+          "mitarbeiterzahl": { "value": 1246, "unit": "FTE", "source": "S. 5/6" },
+          "personalaufwand": { "value": 362.48, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 10; Anhang Note 35, S. 38" },
+          "sachaufwand": { "value": 416.09, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 10; Anhang Note 36, S. 38; keine separate Position 'Outsourcing' (IT in 'EDV, Maschinen, Mobiliar, Fahrzeuge' enthalten)" },
+          "zinserfolg": { "value": 343.54, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 10" },
+          "kommissionserfolg": { "value": 388.04, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 10" },
+          "handelserfolg": { "value": 180.76, "unit": "CHF Mio.", "source": "Erfolgsrechnung, S. 10; Anhang Note 34" },
+          "anzahlGeschaeftsleitung": { "value": 5, "unit": "Anzahl", "source": "Organe, S. 4 (Stand Dezember 2025)" },
+          "anzahlVerwaltungsrat": { "value": 6, "unit": "Anzahl", "source": "Organe, S. 4 (Stand Dezember 2025)" },
+          "anzahlStandorte": { "value": 5, "unit": "Anzahl", "source": "Anhang Note 46 'Niederlassungen im Ausland', S. 41 (Österreich, Hongkong, Dublin, Deutschland, UK)" },
+          "weitere": {
+            "aum": { "value": 142229.7, "unit": "CHF Mio.", "source": "S. 5/41 (Anhang 45, betreute Kundenvermögen)" },
+            "kapitalrenditeROA": { "value": 0.52, "unit": "%", "source": "S. 39 (Jahresgewinn/Bilanzsumme, methodisch RoA)" },
+            "kundengelderBreit": { "value": 25476.6, "unit": "CHF Mio.", "source": "S. 5 (inkl. verbriefte Verbindlichkeiten)" },
+            "gefaehrdeteForderungenBrutto": { "value": 38.3, "unit": "CHF Mio.", "source": "S. 20 (Anhang 1)" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 48644.0, "unit": "CHF Mio.", "source": "S. 5/8" },
+          "eigenkapitalquote": { "value": 18.0, "unit": "%", "source": "S. 5/6" },
+          "cet1Quote": { "value": 18.0, "unit": "%", "source": "S. 5" },
+          "roe": { "value": null, "unit": "%", "source": "n/a" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 15883.9, "unit": "CHF Mio.", "source": "S. 5/8" },
+          "kundeneinlagen": { "value": 23682.2, "unit": "CHF Mio.", "source": "S. 8 / Anhang 24" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 200.5, "unit": "CHF Mio.", "source": "S. 5/10" },
+          "mitarbeiterzahl": { "value": 1312, "unit": "FTE", "source": "S. 5/6" },
+          "personalaufwand": { "value": 357.72, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 10, Vorjahreswert" },
+          "sachaufwand": { "value": 438.02, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 10, Vorjahreswert" },
+          "zinserfolg": { "value": 418.28, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 10, Vorjahreswert" },
+          "kommissionserfolg": { "value": 362.14, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 10, Vorjahreswert" },
+          "handelserfolg": { "value": 165.41, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 10, Vorjahreswert" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – nur aktuellster Stand (Dez. 2025) ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – nur aktuellster Stand (Dez. 2025) ausgewiesen" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "aum": { "value": 130709.4, "unit": "CHF Mio.", "source": "S. 5/41" },
+            "kapitalrenditeROA": { "value": 0.41, "unit": "%", "source": "S. 39" },
+            "kundengelderBreit": { "value": 26118.6, "unit": "CHF Mio.", "source": "S. 5" },
+            "gefaehrdeteForderungenBrutto": { "value": 40.8, "unit": "CHF Mio.", "source": "S. 20" }
+          }
+        }
+      }
+    },
+    {
+      "name": "EFG Bank von Ernst AG",
+      "istZielbank": false,
+      "quelldatei": "EFG Bank von Ernst Annual Report 2025.pdf",
+      "basis": "Einzelabschluss (100%-Tochter der EFG International AG, Zürich)",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 657.56, "unit": "CHF Mio.", "source": "p. 12" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 30.9, "unit": "%", "source": "p. 6 (Chair/CEO-Vorwort, Fliesstext, kein testiertes Zahlenwerk)" },
+          "roe": { "value": null, "unit": "%", "source": "n/a – nur 'Return on Investment' (methodisch RoA), siehe weitere" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 170.78, "unit": "CHF Mio.", "source": "p. 12 (Due from clients)" },
+          "kundeneinlagen": { "value": 381.15, "unit": "CHF Mio.", "source": "p. 12 (Due to clients)" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 20.55, "unit": "CHF Mio.", "source": "p. 13" },
+          "mitarbeiterzahl": { "value": null, "unit": "FTE", "source": "n/a – im Bericht nicht als Kennzahl ausgewiesen" },
+          "personalaufwand": { "value": 8.82, "unit": "CHF Mio.", "source": "Income statement, p. 13; Note 21, p. 28" },
+          "sachaufwand": { "value": 4.93, "unit": "CHF Mio.", "source": "Income statement, p. 13; Note 22, p. 29; keine separate Position 'Outsourcing' (IT in 'IT, machinery, furniture, vehicles' enthalten)" },
+          "zinserfolg": { "value": 8.71, "unit": "CHF Mio.", "source": "Income statement, p. 13 (Net interest income)" },
+          "kommissionserfolg": { "value": 6.35, "unit": "CHF Mio.", "source": "Income statement, p. 13" },
+          "handelserfolg": { "value": 26.69, "unit": "CHF Mio.", "source": "Income statement, p. 13; Note 20, p. 28" },
+          "anzahlGeschaeftsleitung": { "value": 3, "unit": "Anzahl", "source": "Corporate governance, p. 10 (Stand 1.1.2026)" },
+          "anzahlVerwaltungsrat": { "value": 4, "unit": "Anzahl", "source": "Corporate governance, p. 10 (Stand 1.1.2026)" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a – im Bericht nicht genannt" },
+          "weitere": {
+            "totalClientAssets": { "value": 2028.7, "unit": "CHF Mio.", "source": "p. 27 (Note 18, inkl. Doppelzählungen)" },
+            "custodyAssets": { "value": 233.8, "unit": "CHF Mio.", "source": "p. 27" },
+            "netNewAssets": { "value": 618.9, "unit": "CHF Mio.", "source": "p. 6 (narrativ)" },
+            "returnOnInvestmentROA": { "value": 3.10, "unit": "%", "source": "p. 29 (Note 24)" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 425.42, "unit": "CHF Mio.", "source": "p. 12" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": null, "unit": "%", "source": "n/a – nur für 2025 im Chair/CEO-Brief genannt" },
+          "roe": { "value": null, "unit": "%", "source": "n/a" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 103.08, "unit": "CHF Mio.", "source": "p. 12" },
+          "kundeneinlagen": { "value": 354.60, "unit": "CHF Mio.", "source": "p. 12" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 15.12, "unit": "CHF Mio.", "source": "p. 13" },
+          "mitarbeiterzahl": { "value": null, "unit": "FTE", "source": "n/a" },
+          "personalaufwand": { "value": 4.90, "unit": "CHF Mio.", "source": "Income statement, p. 13, Vorjahreswert" },
+          "sachaufwand": { "value": 3.49, "unit": "CHF Mio.", "source": "Income statement, p. 13, Vorjahreswert" },
+          "zinserfolg": { "value": 7.02, "unit": "CHF Mio.", "source": "Income statement, p. 13, Vorjahreswert" },
+          "kommissionserfolg": { "value": 4.32, "unit": "CHF Mio.", "source": "Income statement, p. 13, Vorjahreswert" },
+          "handelserfolg": { "value": 17.22, "unit": "CHF Mio.", "source": "Income statement, p. 13, Vorjahreswert; Note 20, p. 28" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – Governance-Liste nur zum Stichtag 1.1.2026 ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – Governance-Liste nur zum Stichtag 1.1.2026 ausgewiesen" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "totalClientAssets": { "value": 1270.2, "unit": "CHF Mio.", "source": "p. 27 (Note 18)" },
+            "custodyAssets": { "value": 268.1, "unit": "CHF Mio.", "source": "p. 27" },
+            "returnOnInvestmentROA": { "value": 3.60, "unit": "%", "source": "p. 29 (Note 24)" }
+          }
+        }
+      }
+    },
+    {
+      "name": "Kaiser Partner Privatbank AG",
+      "istZielbank": false,
+      "quelldatei": "Kaiser Partner Privatbank AG-annual-report-2025-de.pdf",
+      "basis": "Konsolidiert (inkl. Kaiser Partner Wealth Advisory und Kaiser Partner Financial Advisors)",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 880.0, "unit": "CHF Mio.", "source": "S. 20-21 (konsolidiert)" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 26.0, "unit": "%", "source": "S. 43 / S. 15 ('Tier-1-Ratio 26.0% nach Dividendenausschüttung')" },
+          "roe": { "value": null, "unit": "%", "source": "n/a – nur 'Kapitalrendite' (methodisch RoA), siehe weitere" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 106.37, "unit": "CHF Mio.", "source": "S. 20 (konsolidiert)" },
+          "kundeneinlagen": { "value": 783.72, "unit": "CHF Mio.", "source": "S. 21 (konsolidiert)" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a – siehe weitere.gefaehrdeteForderungenBruttoKonsolidiert" },
+          "jahresueberschuss": { "value": 12.18, "unit": "CHF Mio.", "source": "S. 21/23 (konsolidiert)" },
+          "mitarbeiterzahl": { "value": 133.8, "unit": "FTE", "source": "S. 26 (153 Mitarbeitende / 133.8 FTE)" },
+          "personalaufwand": { "value": 25.63, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24; Anhang S. 40 (konsolidiert)" },
+          "sachaufwand": { "value": 15.31, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24; Anhang S. 40 (konsolidiert); keine separate Position 'Outsourcing'" },
+          "zinserfolg": { "value": 13.83, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24 (konsolidiert)" },
+          "kommissionserfolg": { "value": 36.72, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24 (konsolidiert)" },
+          "handelserfolg": { "value": 9.02, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24; Anhang S. 40 (konsolidiert)" },
+          "anzahlGeschaeftsleitung": { "value": 5, "unit": "Anzahl", "source": "S. 75 (Stand 27.02.2026)" },
+          "anzahlVerwaltungsrat": { "value": 3, "unit": "Anzahl", "source": "S. 75 (Stand 27.02.2026)" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a – keine explizite Anzahl Niederlassungen genannt" },
+          "weitere": {
+            "aum": { "value": 9713, "unit": "CHF Mio.", "source": "S. 2/38 (konsolidiert)" },
+            "nettoNeugeld": { "value": 1492, "unit": "CHF Mio.", "source": "S. 2/38" },
+            "bruttoertrag": { "value": 59.9, "unit": "CHF Mio.", "source": "S. 2/23" },
+            "kapitalrenditeROA": { "value": 1.38, "unit": "%", "source": "S. 39" },
+            "mitarbeiterKopfzahl": { "value": 153, "unit": "Anzahl", "source": "S. 26" },
+            "gefaehrdeteForderungenBruttoKonsolidiert": { "value": 0.022, "unit": "CHF Mio.", "source": "S. 30" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 834.41, "unit": "CHF Mio.", "source": "S. 20-21" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": null, "unit": "%", "source": "n/a – Offenlegungstabelle nur für 2025 mit Ratio-Zeile" },
+          "roe": { "value": null, "unit": "%", "source": "n/a" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 102.87, "unit": "CHF Mio.", "source": "S. 20" },
+          "kundeneinlagen": { "value": 747.01, "unit": "CHF Mio.", "source": "S. 21" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 9.07, "unit": "CHF Mio.", "source": "S. 21/23" },
+          "mitarbeiterzahl": { "value": 129.5, "unit": "FTE", "source": "S. 26 (147 Mitarbeitende / 129.5 FTE)" },
+          "personalaufwand": { "value": 23.45, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24, Vorjahr" },
+          "sachaufwand": { "value": 13.71, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24, Vorjahr (Anhang S. 40: 13.71, minimale Rundungsdifferenz im Bericht)" },
+          "zinserfolg": { "value": 9.14, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24, Vorjahr" },
+          "kommissionserfolg": { "value": 34.36, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24, Vorjahr" },
+          "handelserfolg": { "value": 9.64, "unit": "CHF Mio.", "source": "Konsolidierte Erfolgsrechnung S. 24, Vorjahr" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – Governance-Liste nur zum Stichtag 27.02.2026 ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – Governance-Liste nur zum Stichtag 27.02.2026 ausgewiesen" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "aum": { "value": 8240, "unit": "CHF Mio.", "source": "S. 38" },
+            "nettoNeugeld": { "value": 1810, "unit": "CHF Mio.", "source": "S. 38" },
+            "bruttoertrag": { "value": 53.5, "unit": "CHF Mio.", "source": "S. 23" },
+            "kapitalrenditeROA": { "value": 1.09, "unit": "%", "source": "S. 39" },
+            "mitarbeiterKopfzahl": { "value": 147, "unit": "Anzahl", "source": "S. 26" },
+            "gefaehrdeteForderungenBruttoKonsolidiert": { "value": 0.042, "unit": "CHF Mio.", "source": "S. 30" }
+          }
+        }
+      }
+    },
+    {
+      "name": "Neue Bank AG",
+      "istZielbank": false,
+      "quelldatei": "Neue-Bank-AG_Geschaeftsbericht-2025.pdf",
+      "basis": "Einzelabschluss",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 1450.1, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a – Eigenkapital absolut CHF 141.1 Mio., siehe weitere" },
+          "cet1Quote": { "value": 27.5, "unit": "%", "source": "Kennzahlenübersicht S. 4-5 / Eigenmittelausweis S. 56-57 (Tier-1-Ratio)" },
+          "roe": { "value": null, "unit": "%", "source": "n/a" },
+          "cir": { "value": 76.4, "unit": "%", "source": "Kennzahlenübersicht S. 4-5" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 455.7, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "kundeneinlagen": { "value": 1238.8, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a – siehe weitere.einzelwertberichtigungenAusfallrisiken" },
+          "jahresueberschuss": { "value": 6.59, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "mitarbeiterzahl": { "value": 93, "unit": "FTE", "source": "Kennzahlenübersicht S. 4-5" },
+          "personalaufwand": { "value": 16.19, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 41; Anhang S. 59" },
+          "sachaufwand": { "value": 10.67, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 41; Anhang S. 59; keine separate Position 'Outsourcing'" },
+          "zinserfolg": { "value": 10.27, "unit": "CHF Mio.", "source": "S. 37, 41 (Subtotal Erfolg aus dem Zinsengeschäft)" },
+          "kommissionserfolg": { "value": 16.95, "unit": "CHF Mio.", "source": "S. 37, 41 (Subtotal Erfolg Kommissions- und Dienstleistungsgeschäft)" },
+          "handelserfolg": { "value": 7.94, "unit": "CHF Mio.", "source": "S. 37, 41 (Erfolg aus Finanzgeschäften gesamt)" },
+          "anzahlGeschaeftsleitung": { "value": 4, "unit": "Anzahl", "source": "S. 4 Bankorgane (Stand 31.12.2025)" },
+          "anzahlVerwaltungsrat": { "value": 5, "unit": "Anzahl", "source": "S. 4, 13, 24" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a – nur 1 Adresse (Vaduz) genannt" },
+          "weitere": {
+            "aum": { "value": 7630.9, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+            "leverageRatio": { "value": 9.2, "unit": "%", "source": "Kennzahlenübersicht S. 4-5" },
+            "lcr": { "value": 156.7, "unit": "%", "source": "Kennzahlenübersicht S. 4-5" },
+            "nettoNeugeld": { "value": 735.3, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5 / VR-Bericht S. 7" },
+            "eigenkapitalAbsolut": { "value": 141.1, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+            "einzelwertberichtigungenAusfallrisiken": { "value": 11.0, "unit": "CHF Mio.", "source": "Anhang S. 51" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 1369.1, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": 25.7, "unit": "%", "source": "Kennzahlenübersicht S. 4-5" },
+          "roe": { "value": null, "unit": "%", "source": "n/a" },
+          "cir": { "value": 68.7, "unit": "%", "source": "Kennzahlenübersicht S. 4-5" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": 435.2, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "kundeneinlagen": { "value": 1059.4, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 6.73, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+          "mitarbeiterzahl": { "value": 83, "unit": "FTE", "source": "Kennzahlenübersicht S. 4-5" },
+          "personalaufwand": { "value": 14.25, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 41, Vorjahr" },
+          "sachaufwand": { "value": 10.13, "unit": "CHF Mio.", "source": "Erfolgsrechnung S. 41, Vorjahr" },
+          "zinserfolg": { "value": 11.88, "unit": "CHF Mio.", "source": "S. 41, Vorjahr" },
+          "kommissionserfolg": { "value": 16.98, "unit": "CHF Mio.", "source": "S. 41, Vorjahr" },
+          "handelserfolg": { "value": 6.54, "unit": "CHF Mio.", "source": "S. 41, Vorjahr" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – nicht separat für 2024 ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – nicht separat für 2024 ausgewiesen" },
+          "anzahlStandorte": { "value": null, "unit": "Anzahl", "source": "n/a" },
+          "weitere": {
+            "aum": { "value": 6660.9, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+            "leverageRatio": { "value": 9.6, "unit": "%", "source": "Kennzahlenübersicht S. 4-5" },
+            "lcr": { "value": 140.9, "unit": "%", "source": "Kennzahlenübersicht S. 4-5" },
+            "nettoNeugeld": { "value": -32.5, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+            "eigenkapitalAbsolut": { "value": 139.7, "unit": "CHF Mio.", "source": "Kennzahlenübersicht S. 4-5" },
+            "einzelwertberichtigungenAusfallrisiken": { "value": 11.0, "unit": "CHF Mio.", "source": "Anhang S. 51" }
+          }
+        }
+      }
+    },
+    {
+      "name": "Banking Circle (Liechtenstein) AG",
+      "istZielbank": false,
+      "quelldatei": "2025_Banking Circle -LI-Annual-report-Signed.pdf",
+      "basis": "Einzelabschluss. Hinweis: eigenständige Tochter-AG (nicht Niederlassung) der Banking Circle S.A. (Luxemburg), FMA-Lizenz seit 2024. Reiner Zahlungsdienstleister (Transaction Banking) für Payment-Firmen, Banken und Grosskonzerne – kein klassisches Kredit- oder Retail-Einlagengeschäft. Direkter Vergleich mit Universal-/Privatbanken nur eingeschränkt aussagekräftig.",
+      "jahre": {
+        "2025": {
+          "bilanzsumme": { "value": 25.82, "unit": "CHF Mio.", "source": "Balance Sheet S. 7" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": null, "unit": "%", "source": "n/a – Disclosure Report separat auf Bank-Website, nicht im Jahresbericht" },
+          "roe": { "value": null, "unit": "%", "source": "n/a – nur Return on Assets, siehe weitere" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": null, "unit": "CHF Mio.", "source": "n/a – kein Kundenkreditgeschäft (Note 1, S. 11)" },
+          "kundeneinlagen": { "value": 0.00225, "unit": "CHF Mio.", "source": "Note 13, S. 7-8 – praktisch keine externen Kundeneinlagen; Refinanzierung konzernintern (CHF 15.07 Mio. 'Due to Banks')" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a – keine Kreditvergabe" },
+          "jahresueberschuss": { "value": 0.193, "unit": "CHF Mio.", "source": "P&L S. 9-10" },
+          "mitarbeiterzahl": { "value": 4, "unit": "FTE (Durchschnitt)", "source": "Note 29, S. 23" },
+          "personalaufwand": { "value": 0.84, "unit": "CHF Mio.", "source": "Note 29 / P&L Account, S. 9, 23" },
+          "sachaufwand": { "value": 1.04, "unit": "CHF Mio.", "source": "Note 30 'General and administrative expenses', S. 23" },
+          "zinserfolg": { "value": null, "unit": "CHF Mio.", "source": "n/a – im Bericht keine Subtotal-Zeile 'Zinserfolg' ausgewiesen (nur Bruttopositionen Zinsertrag/-aufwand in Note 26)" },
+          "kommissionserfolg": { "value": null, "unit": "CHF Mio.", "source": "n/a – im Bericht keine Subtotal-Zeile 'Kommissionserfolg' ausgewiesen (nur Bruttopositionen in Note 27)" },
+          "handelserfolg": { "value": 0.0017, "unit": "CHF Mio.", "source": "Note 28 'Income from Financial Transactions (Foreign exchange)', S. 9, 23" },
+          "anzahlGeschaeftsleitung": { "value": 3, "unit": "Anzahl", "source": "General Information / Executive Board, S. 4" },
+          "anzahlVerwaltungsrat": { "value": 4, "unit": "Anzahl", "source": "General Information / Board of Directors, S. 4 (Stand 31.12.2025)" },
+          "anzahlStandorte": { "value": 1, "unit": "Anzahl", "source": "S. 4 – nur Sitz Ruggell (FL); Konzern-Zweigstellen (DE, DK, NO, SE, PL, CZ, UK) betreffen nicht diese LI-Gesellschaft" },
+          "weitere": {
+            "returnOnAssets": { "value": 0.75, "unit": "%", "source": "Note 40, S. 26" },
+            "bruttoertrag": { "value": 2.09, "unit": "CHF Mio.", "source": "P&L S. 9" },
+            "dueToAffiliatedBanks": { "value": 15.07, "unit": "CHF Mio.", "source": "Note 12, S. 7-8" }
+          }
+        },
+        "2024": {
+          "bilanzsumme": { "value": 10.46, "unit": "CHF Mio.", "source": "Balance Sheet S. 7" },
+          "eigenkapitalquote": { "value": null, "unit": "%", "source": "n/a" },
+          "cet1Quote": { "value": null, "unit": "%", "source": "n/a" },
+          "roe": { "value": null, "unit": "%", "source": "n/a" },
+          "cir": { "value": null, "unit": "%", "source": "n/a" },
+          "nettozinsmarge": { "value": null, "unit": "%", "source": "n/a" },
+          "kreditvolumen": { "value": null, "unit": "CHF Mio.", "source": "n/a" },
+          "kundeneinlagen": { "value": 0.0, "unit": "CHF Mio.", "source": "Note 13, S. 7-8" },
+          "nplQuote": { "value": null, "unit": "%", "source": "n/a" },
+          "jahresueberschuss": { "value": 0.090, "unit": "CHF Mio.", "source": "P&L S. 9-10" },
+          "mitarbeiterzahl": { "value": 3, "unit": "FTE (Durchschnitt)", "source": "Note 29, S. 23" },
+          "personalaufwand": { "value": 0.43, "unit": "CHF Mio.", "source": "Note 29, S. 23" },
+          "sachaufwand": { "value": 0.51, "unit": "CHF Mio.", "source": "Note 30, S. 23" },
+          "zinserfolg": { "value": null, "unit": "CHF Mio.", "source": "n/a – keine Subtotal-Zeile ausgewiesen" },
+          "kommissionserfolg": { "value": null, "unit": "CHF Mio.", "source": "n/a – keine Subtotal-Zeile ausgewiesen" },
+          "handelserfolg": { "value": -0.0013, "unit": "CHF Mio.", "source": "Note 28, S. 9, 23" },
+          "anzahlGeschaeftsleitung": { "value": null, "unit": "Anzahl", "source": "n/a – für 2024 nicht separat ausgewiesen" },
+          "anzahlVerwaltungsrat": { "value": null, "unit": "Anzahl", "source": "n/a – für 2024 nicht separat ausgewiesen" },
+          "anzahlStandorte": { "value": 1, "unit": "Anzahl", "source": "S. 4 – Sitz Ruggell (FL)" },
+          "weitere": {
+            "returnOnAssets": { "value": 0.86, "unit": "%", "source": "Note 40, S. 26" },
+            "bruttoertrag": { "value": 1.03, "unit": "CHF Mio.", "source": "P&L S. 9" },
+            "dueToAffiliatedBanks": { "value": 0.0, "unit": "CHF Mio.", "source": "Note 12, S. 7-8" }
+          }
+        }
+      }
+    }
+  ],
+  "untersuchungsbereiche": [
+    {
+      "titel": "Organisationsstruktur, Teamdimensionierung und Führungsspannen",
+      "beschreibung": "Analyse, ob Teamzuschnitte, Führungsebenen und Leitungsrelationen zur heutigen Geschäftsgrösse passen.",
+      "abgedeckteKpis": ["mitarbeiterzahl", "anzahlGeschaeftsleitung", "anzahlVerwaltungsrat"],
+      "luecke": "Geschäftsberichte liefern nur Gesamt-FTE und Namenslisten der Organe – keine Teamzuschnitte, Führungsspannen (Anzahl direkter Reports) oder Organigramm-Tiefe. Dafür sind interne Org-Daten/Interviews nötig."
+    },
+    {
+      "titel": "Fremdleistungen, Outsourcing und Drittanbieteraufwand",
+      "beschreibung": "Untersuchung externer Kostenblöcke wie IT, Revision, Beratung und weiterer Dienstleistungen.",
+      "abgedeckteKpis": ["sachaufwand"],
+      "luecke": "Keine der 9 Banken weist eine explizite Position 'Outsourcing' oder 'Dienstleistungen Dritter' aus. IT-/EDV-Aufwand ist meist mit Mobiliar/Maschinen zusammengelegt, Revisions-/Beratungshonorare teils separat (SIGMA, Neue Bank, Kaiser Partner, EFG), teils mit Beratung verschmolzen (LLB) oder gar nicht (Bendura, Bank Frick). Ein sauberer Peer-Vergleich der Fremdleistungsquote ist aus öffentlichen Berichten nicht möglich – erfordert Rechnungs-/Vertragsdaten."
+    },
+    {
+      "titel": "Profitabilität von Produkten, Services und Kundenbeziehungen der SIGMA Bank",
+      "beschreibung": "Analyse der Wirtschaftlichkeit von Angeboten, Servicelevels und Kundenbeziehungen im Hinblick auf Erträge, Betreuungsaufwand und gebundene Kapazitäten.",
+      "abgedeckteKpis": ["zinserfolg", "kommissionserfolg", "handelserfolg", "cir", "jahresueberschuss"],
+      "luecke": "Ertragsstruktur ist nur auf Gesamtbank-Ebene sichtbar (Zins-/Kommissions-/Handelserfolg), nicht nach Produkt, Servicelevel oder einzelner Kundenbeziehung. Profitabilität pro Produktlinie/Kundensegment erfordert interne Managementrechnung."
+    },
+    {
+      "titel": "Gruppenweite Synergien und Vereinfachung beider Häuser",
+      "beschreibung": "Untersuchung von Doppelstrukturen, Schnittstellen und parallelen Aktivitäten zur Realisierung von Synergien.",
+      "abgedeckteKpis": [],
+      "luecke": "Diese Fragestellung betrifft die interne Struktur der SIGMA-Gruppe selbst (z.B. SIGMA Bank AG + SIGMA KREDITBANK AG) und ist grundsätzlich nicht aus Peer-Vergleichsdaten anderer Banken ableitbar. Erfordert interne Prozess-/Schnittstellenanalyse innerhalb der SIGMA-Gruppe."
+    },
+    {
+      "titel": "Strukturelle Kostenbasis und Kostenflexibilität",
+      "beschreibung": "Analyse der wesentlichen Kostenblöcke, um materielle Einsparpotenziale sowie kurz-, mittel- und langfristig beeinflussbare Kosten transparent zu machen.",
+      "abgedeckteKpis": ["personalaufwand", "sachaufwand", "cir"],
+      "luecke": "Personal-/Sachaufwand-Split ist für alle Banken vorhanden, eine Fixkosten-/variable-Kosten-Aufschlüsselung oder Aussagen zur kurzfristigen Kostenflexibilität sind in keinem Bericht enthalten."
+    },
+    {
+      "titel": "Governance-, Steuerungs- und Kontrollmodell",
+      "beschreibung": "Analyse von Gremien, Entscheidungswegen, Reporting, Kontrollintensität und laufenden Initiativen.",
+      "abgedeckteKpis": ["anzahlGeschaeftsleitung", "anzahlVerwaltungsrat"],
+      "luecke": "Nur Kopfzahlen der Führungsgremien sind verfügbar (und teils nur zum aktuellsten Berichtsstichtag, nicht rückwirkend für 2024). Ausschüsse, Sitzungsfrequenz, Reporting-Linien und Kontrollintensität sind nicht strukturiert für einen Peer-Vergleich extrahierbar."
+    },
+    {
+      "titel": "Produktivität, Prozesseffizienz und Automatisierung",
+      "beschreibung": "Untersuchung von Kapazitätsnutzung, manuellen Tätigkeiten, Medienbrüchen und Prozessineffizienzen.",
+      "abgedeckteKpis": ["cir", "mitarbeiterzahl", "bilanzsumme"],
+      "luecke": "CIR und Mitarbeiterzahl dienen bestenfalls als grobe Produktivitäts-Proxys (z.B. Bilanzsumme pro FTE, hier bewusst nicht selbst berechnet). Automatisierungsgrad, Durchlaufzeiten und Prozesskennzahlen sind in keinem Geschäftsbericht enthalten – erfordert Prozessaufnahmen vor Ort."
+    }
+  ],
+  "methodik": {
+    "verwendeteDateien": [
+      "2025_Geschaeftsbericht-BENDURA-BANK-AG.pdf (Duplikat 2025_Geschaeftsbericht-BENDURA-BANK-AG (1).pdf identisch, ignoriert)",
+      "Bank_Frick_Geschaeftsbericht_25_DE_2026-4.pdf",
+      "Liechtensteinische Landesbank  AG_GB25.pdf",
+      "Annual-Report-2025-LGT-Bank-Vaduz-de.pdf",
+      "EFG Bank von Ernst Annual Report 2025.pdf",
+      "Kaiser Partner Privatbank AG-annual-report-2025-de.pdf",
+      "Geschäftsbericht_2025_-_SIGMA_Gruppe_-_SIGMA_Bank_AG.pdf (Zielbank)",
+      "Neue-Bank-AG_Geschaeftsbericht-2025.pdf",
+      "2025_Banking Circle -LI-Annual-report-Signed.pdf"
+    ],
+    "einschraenkungen": [
+      "Unterschiedliche Rechnungslegungsbasis: LLB bilanziert konsolidiert nach IFRS; LGT Bank AG legt bewusst keinen Konzernabschluss vor (Solo inkl. ausländischer Betriebsstätten, ohne Tochtergesellschaften); EFG Bank von Ernst ist Einzelabschluss einer 100%-Tochter der EFG International; SIGMA und Kaiser Partner weisen sowohl konsolidierte als auch Einzelabschlusszahlen aus – hier wurden konsequent die konsolidierten Werte verwendet, wo vorhanden.",
+      "Keine der neun Banken weist eine klassische Eigenkapitalrendite (RoE) im engeren Sinn aus. Mehrere Berichte (SIGMA, LGT, EFG, Kaiser Partner) zeigen stattdessen eine 'Kapitalrendite'/'Return on Investment', die als Jahresgewinn/Bilanzsumme definiert ist – das ist methodisch eine Return-on-Assets-Kennzahl. Diese Werte wurden NICHT unter 'roe' einsortiert, sondern separat unter 'weitere' gekennzeichnet, um keine Kennzahlen zu vermischen.",
+      "Cost-Income-Ratio ist nur bei Bendura, Bank Frick, LLB und Neue Bank explizit als Prozentkennzahl ausgewiesen. Bei SIGMA, LGT, EFG, Kaiser Partner und Banking Circle liegt keine CIR-Quote vor (nur absolute Aufwands-/Ertragspositionen) – NICHT selbst berechnet, sondern als n/a markiert.",
+      "Nettozinsmarge ist bei KEINER der neun Banken explizit als Prozentkennzahl ausgewiesen – durchgängig als n/a markiert statt aus Zinserfolg/Bilanzsumme geschätzt.",
+      "NPL-Quote (%) ist bei keiner Bank ausgewiesen. Einige Berichte nennen absolute Werte für gefährdete Forderungen/erwartete Kreditverluste (LGT, LLB, Kaiser Partner, Neue Bank) – diese liegen unter 'weitere', wurden aber nicht in eine Quote umgerechnet.",
+      "SIGMA Bank AG (Zielbank): Konzernzahlen umfassen die 100%-Tochter SIGMA KREDITBANK AG (Konsumkredite Deutschland, EUR-Bilanzierung), wodurch Bilanzsumme, Kreditvolumen und insbesondere gefährdete Forderungen im Konzern deutlich höher liegen als auf Ebene der Einzelbank SIGMA Bank AG. Für strukturelle Vergleichbarkeit mit reinen Privatbanken sind ggf. die Einzelabschlusswerte (unter 'weitere.einzelabschluss_*') relevanter.",
+      "Banking Circle (Liechtenstein) AG ist eine 2024 lizenzierte Nischenbank für Zahlungsverkehr ohne Kredit- oder klassisches Einlagengeschäft – ein direkter Kennzahlenvergleich mit Universal-/Privatbanken ist nur sehr eingeschränkt aussagekräftig (viele Kennzahlen n/a oder strukturell nicht vergleichbar).",
+      "Bank Frick: RoE- und CET1-Werte für 2024 stammen aus einer Balkengrafik ohne begleitenden Fliesstext-Beleg (Pixel-/Achsen-Ablesung durch den extrahierenden Agenten) – etwas geringere Konfidenz als bei textlich belegten Werten.",
+      "LLB: Vorjahreswerte 2024 (Eigenkapital, Tier-1-Ratio, LCR/NSFR) sind vom Berichtsersteller selbst restated/angepasst worden und weichen daher ggf. vom ursprünglich für 2024 berichteten Wert ab.",
+      "Alle Beträge in CHF; bei international tätigen Banken (LGT, EFG, Bank Frick) bestehen teils erhebliche Fremdwährungsanteile in Bilanz und Kundenvermögen, die hier nicht weiter aufgeschlüsselt wurden.",
+      "Mitarbeiterzahlen sind, wo verfügbar, als teilzeitbereinigte FTE-Werte erfasst; EFG Bank von Ernst weist im Bericht keine Mitarbeiterkennzahl aus (n/a).",
+      "Personalaufwand/Sachaufwand/Ertragsstruktur (Zins-/Kommissions-/Handelserfolg) wurden in einer zweiten Recherche ergänzt, um die 7 Untersuchungsbereiche des Vorgehensmodells (Organisationsstruktur, Fremdleistungen/Outsourcing, Produktprofitabilität, Synergien, Kostenbasis, Governance, Produktivität) abzudecken. Auch hier gilt: nur explizit ausgewiesene Werte, nichts berechnet. Bei Banking Circle sind Zins- und Kommissionserfolg als n/a markiert, da der Bericht keine Subtotal-Zeile ausweist (nur Bruttopositionen) – eine Verrechnung würde eine im Bericht nicht vorhandene Kennzahl erzeugen.",
+      "Geschäftsleitungs-/Verwaltungsrats-Kopfzahlen sind bei den meisten Banken nur zum aktuellsten Berichtsstichtag (teils erst nach dem 31.12., z.B. Stand Januar/Februar 2026) ausgewiesen, nicht separat rückwirkend für 2024 – daher bei den meisten Banken für 2024 als n/a markiert, auch wenn im Bericht unterjährige Wechsel erwähnt werden.",
+      "Bank Frick: Personalaufwand/Sachaufwand-Aufschlüsselung basiert auf dem Einzelabschluss (Solo), während die übrigen Bank-Frick-Kennzahlen im Dashboard auf Konzernbasis beruhen; der Unterschied ist bei diesen beiden Positionen minimal (Konzern-Gesamtaufwand CHF 77.1 Mio. vs. Solo CHF 77.1 Mio.).",
+      "Keine der 9 Banken weist eine explizite Position 'Outsourcing' oder 'Fremdleistungen Dritter' in der Sachaufwand-Aufgliederung aus – dies ist eine zentrale Erkenntnis für den Untersuchungsbereich 'Fremdleistungen, Outsourcing und Drittanbieteraufwand': aus öffentlichen Geschäftsberichten allein nicht belastbar analysierbar."
+    ]
+  }
+};
+
+const state = {
+  kpi: 'bilanzsumme',
+  year: '2025',
+  hidden: new Set(),
+  sortCol: 'name',
+  sortDir: 'asc'
+};
+
+const fmtNum = (v, decimals) => {
+  if (v === null || v === undefined || typeof v !== 'number' || isNaN(v)) return 'n/a';
+  const d = decimals !== undefined ? decimals : (Math.abs(v) >= 100 ? 0 : (Math.abs(v) >= 10 ? 1 : 2));
+  return v.toLocaleString('de-CH', { minimumFractionDigits: d, maximumFractionDigits: d });
+};
+
+function unitShort(unit) {
+  if (!unit) return '';
+  if (unit.indexOf('CHF Mio.') !== -1) return 'Mio.';
+  if (unit === '%') return '%';
+  if (unit.indexOf('FTE') !== -1) return 'FTE';
+  return unit;
+}
+
+function kpiValue(bank, kpiKey, year) {
+  const y = bank.jahre[year];
+  if (!y || !y[kpiKey]) return null;
+  const v = y[kpiKey].value;
+  return (typeof v === 'number') ? v : null;
+}
+function kpiCell(bank, kpiKey, year) {
+  const y = bank.jahre[year];
+  if (!y || !y[kpiKey]) return { value: null, unit: '', source: 'n/a' };
+  return y[kpiKey];
+}
+
+function visibleBanks() {
+  return DATA.banken.filter(b => b.istZielbank || !state.hidden.has(b.name));
+}
+
+function targetBank() { return DATA.banken.find(b => b.istZielbank); }
+
+// ---------- KPI pills ----------
+const KPI_GROUP_LABELS = { kern: 'Kernkennzahlen', struktur: 'Kosten-, Ertragsstruktur & Governance' };
+function buildKpiPills() {
+  const container = document.getElementById('kpiPills');
+  container.innerHTML = '';
+  const groups = {};
+  Object.entries(DATA.kpiDefinitionen).forEach(([key, def]) => {
+    const g = def.kategorie || 'kern';
+    (groups[g] = groups[g] || []).push([key, def]);
+  });
+  Object.entries(groups).forEach(([g, entries]) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'kpi-group';
+    const label = document.createElement('div');
+    label.className = 'kpi-group-label';
+    label.textContent = KPI_GROUP_LABELS[g] || g;
+    const row = document.createElement('div');
+    row.className = 'pill-row';
+    entries.forEach(([key, def]) => {
+      const hasAnyData = DATA.banken.some(b => ['2024','2025'].some(y => kpiValue(b, key, y) !== null));
+      const btn = document.createElement('button');
+      btn.className = 'pill' + (key === state.kpi ? ' active' : '') + (hasAnyData ? '' : ' na');
+      btn.textContent = def.label;
+      btn.onclick = () => { state.kpi = key; renderAll(); };
+      row.appendChild(btn);
+    });
+    wrap.appendChild(label);
+    wrap.appendChild(row);
+    container.appendChild(wrap);
+  });
+}
+
+// ---------- year toggle ----------
+function buildYearToggle() {
+  const container = document.getElementById('yearToggle');
+  container.innerHTML = '';
+  ['2025','2024'].forEach(y => {
+    const btn = document.createElement('button');
+    btn.textContent = y;
+    btn.className = y === state.year ? 'active' : '';
+    btn.onclick = () => { state.year = y; renderAll(); };
+    container.appendChild(btn);
+  });
+}
+
+// ---------- peer filter ----------
+function buildPeerFilter() {
+  const container = document.getElementById('peerFilter');
+  container.innerHTML = '';
+  DATA.banken.forEach(b => {
+    const chip = document.createElement('label');
+    chip.className = 'peer-chip' + (b.istZielbank ? ' zielbank' : '') + (!b.istZielbank && state.hidden.has(b.name) ? ' off' : '');
+    if (b.istZielbank) {
+      chip.innerHTML = '<span class="swatch"></span>' + b.name + ' (Zielbank)';
+    } else {
+      const checked = !state.hidden.has(b.name);
+      chip.innerHTML = '<input type="checkbox" ' + (checked ? 'checked' : '') + '><span class="swatch"></span>' + b.name;
+      const input = chip.querySelector('input');
+      input.onchange = () => {
+        if (input.checked) state.hidden.delete(b.name); else state.hidden.add(b.name);
+        renderAll();
+      };
+    }
+    container.appendChild(chip);
+  });
+}
+
+// ---------- stats ----------
+function computeStats(kpiKey, year) {
+  const def = DATA.kpiDefinitionen[kpiKey];
+  const vis = visibleBanks();
+  const rows = vis.map(b => ({ name: b.name, istZielbank: b.istZielbank, value: kpiValue(b, kpiKey, year), cell: kpiCell(b, kpiKey, year) }))
+    .filter(r => r.value !== null);
+  const peerVals = rows.filter(r => !r.istZielbank).map(r => r.value);
+  const sortedPeer = [...peerVals].sort((a,b) => a-b);
+  const peerAvg = peerVals.length ? peerVals.reduce((a,b)=>a+b,0)/peerVals.length : null;
+  const peerMedian = sortedPeer.length ? (sortedPeer.length % 2 ? sortedPeer[(sortedPeer.length-1)/2] : (sortedPeer[sortedPeer.length/2 - 1] + sortedPeer[sortedPeer.length/2]) / 2) : null;
+  const peerMin = sortedPeer.length ? sortedPeer[0] : null;
+  const peerMax = sortedPeer.length ? sortedPeer[sortedPeer.length-1] : null;
+  const target = rows.find(r => r.istZielbank);
+  const better = def.hoeherIstBesser;
+  let rankedRows = [...rows];
+  if (better === false) rankedRows.sort((a,b) => a.value - b.value);
+  else rankedRows.sort((a,b) => b.value - a.value);
+  let rank = null;
+  if (target) rank = rankedRows.findIndex(r => r.istZielbank) + 1;
+  return { def, rows, rankedRows, peerAvg, peerMedian, peerMin, peerMax, target, rank, total: rankedRows.length };
+}
+
+// ---------- tiles ----------
+function renderTiles() {
+  const stats = computeStats(state.kpi, state.year);
+  document.getElementById('tilesTitle').textContent = 'Positionierung – ' + stats.def.label + ' (' + state.year + ')';
+  document.getElementById('tilesDesc').textContent = stats.rows.length ? 'Basierend auf ' + stats.rows.length + ' Bank(en) mit vorhandenen Daten für diese Kennzahl.' : 'Für diese Kennzahl liegen im gesamten Berichtsjahr keine Daten vor.';
+  const row = document.getElementById('tilesRow');
+  row.innerHTML = '';
+  const unit = unitShort(stats.def.unit);
+  const tiles = [
+    { label: 'SIGMA Bank AG', value: stats.target ? fmtNum(stats.target.value) + ' ' + unit : 'n/a', target: true, sub: stats.rank ? 'Rang ' + stats.rank + ' von ' + stats.total : '' },
+    { label: 'Peer-Durchschnitt', value: stats.peerAvg !== null ? fmtNum(stats.peerAvg) + ' ' + unit : 'n/a' },
+    { label: 'Peer-Median', value: stats.peerMedian !== null ? fmtNum(stats.peerMedian) + ' ' + unit : 'n/a' },
+    { label: 'Peer-Minimum', value: stats.peerMin !== null ? fmtNum(stats.peerMin) + ' ' + unit : 'n/a' },
+    { label: 'Peer-Maximum', value: stats.peerMax !== null ? fmtNum(stats.peerMax) + ' ' + unit : 'n/a' }
+  ];
+  tiles.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tile' + (t.target ? ' target' : '');
+    div.innerHTML = '<div class="tlabel">' + t.label + '</div><div class="tvalue">' + t.value + '</div>' + (t.sub ? '<div class="tsub">' + t.sub + '</div>' : '');
+    row.appendChild(div);
+  });
+}
+
+// ---------- ranking chart ----------
+let tooltipEl;
+function ensureTooltip() {
+  tooltipEl = document.getElementById('tsTooltip');
+}
+function showTooltip(html, x, y) {
+  tooltipEl.innerHTML = html;
+  tooltipEl.style.display = 'block';
+  const w = tooltipEl.offsetWidth, h = tooltipEl.offsetHeight;
+  let left = x + 14, top = y + 14;
+  if (left + w > window.innerWidth - 10) left = x - w - 14;
+  if (top + h > window.innerHeight - 10) top = y - h - 14;
+  tooltipEl.style.left = left + 'px';
+  tooltipEl.style.top = top + 'px';
+}
+function hideTooltip() { tooltipEl.style.display = 'none'; }
+
+function renderRankChart() {
+  const stats = computeStats(state.kpi, state.year);
+  document.getElementById('rankTitle').textContent = 'Ranking-Vergleich – ' + stats.def.label + ' (' + state.year + ')';
+  const container = document.getElementById('rankChart');
+  container.innerHTML = '';
+  if (!stats.rankedRows.length) {
+    container.innerHTML = '<div class="empty-state">Keine Bank weist diese Kennzahl für ' + state.year + ' aus – die zugrunde liegenden Geschäftsberichte enthalten hierzu keinen Wert.</div>';
+    return;
+  }
+  const maxVal = Math.max(...stats.rankedRows.map(r => r.value), 0);
+  const minVal = Math.min(...stats.rankedRows.map(r => r.value), 0);
+  const span = (maxVal - Math.min(minVal,0)) || 1;
+  const unit = unitShort(stats.def.unit);
+  stats.rankedRows.forEach((r, idx) => {
+    const row = document.createElement('div');
+    row.className = 'rank-row' + (r.istZielbank ? ' target' : '');
+    const pct = Math.max(2, ((r.value - Math.min(minVal,0)) / span) * 100);
+    const avgPct = stats.peerAvg !== null ? Math.max(0, ((stats.peerAvg - Math.min(minVal,0)) / span) * 100) : null;
+    row.innerHTML =
+      '<div class="rank-label">' + (idx+1) + '. ' + r.name + '</div>' +
+      '<div class="rank-track">' +
+        '<div class="rank-fill" style="width:' + pct + '%"></div>' +
+        (avgPct !== null ? '<div class="rank-marker avg" style="left:' + avgPct + '%" title="Peer-Durchschnitt"></div>' : '') +
+      '</div>' +
+      '<div class="rank-value">' + fmtNum(r.value) + ' ' + unit + '</div>';
+    const fillEl = row.querySelector('.rank-fill');
+    fillEl.addEventListener('mousemove', (e) => {
+      showTooltip(
+        '<div class="tt-title">' + r.name + (r.istZielbank ? ' (Zielbank)' : '') + '</div>' +
+        '<div class="tt-row' + (r.istZielbank?' target':'') + '"><span>' + stats.def.label + '</span><span>' + fmtNum(r.value) + ' ' + unit + '</span></div>' +
+        '<div class="tt-src">Quelle: ' + r.cell.source + ' · Bericht ' + state.year + '</div>',
+        e.clientX, e.clientY
+      );
+    });
+    fillEl.addEventListener('mouseleave', hideTooltip);
+    container.appendChild(row);
+  });
+}
+
+// ---------- comparison table ----------
+function renderTable() {
+  document.getElementById('tableYearLabel').textContent = state.year;
+  const kpiKeys = Object.keys(DATA.kpiDefinitionen);
+  const table = document.getElementById('cmpTable');
+  const rowsData = DATA.banken.map(b => {
+    const cells = {};
+    kpiKeys.forEach(k => { cells[k] = kpiValue(b, k, state.year); });
+    return { name: b.name, istZielbank: b.istZielbank, cells, hidden: !b.istZielbank && state.hidden.has(b.name) };
+  });
+  const sortKey = state.sortCol;
+  rowsData.sort((a,b) => {
+    let av, bv;
+    if (sortKey === 'name') { av = a.name; bv = b.name; }
+    else { av = a.cells[sortKey]; bv = b.cells[sortKey]; }
+    const aNull = (av === null || av === undefined), bNull = (bv === null || bv === undefined);
+    if (aNull && bNull) return 0;
+    if (aNull) return 1;
+    if (bNull) return -1;
+    if (typeof av === 'string') return state.sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    return state.sortDir === 'asc' ? av - bv : bv - av;
+  });
+
+  let thead = '<thead><tr><th data-col="name">Bank</th>';
+  kpiKeys.forEach(k => {
+    const def = DATA.kpiDefinitionen[k];
+    thead += '<th data-col="' + k + '"' + (state.sortCol===k?' class="sorted"':'') + '>' + def.label + '<br><span style="font-weight:400;text-transform:none;">(' + def.unit + ')</span></th>';
+  });
+  thead += '</tr></thead>';
+
+  let tbody = '<tbody>';
+  rowsData.forEach(r => {
+    tbody += '<tr class="' + (r.istZielbank?'target':'') + (r.hidden?' hidden-row':'') + '"><td>' + r.name + (r.istZielbank?' <strong>(Zielbank)</strong>':'') + '</td>';
+    kpiKeys.forEach(k => {
+      const v = r.cells[k];
+      tbody += '<td' + (v===null?' class="na"':'') + '>' + (v===null ? 'n/a' : fmtNum(v)) + '</td>';
+    });
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+
+  table.innerHTML = thead + tbody;
+  table.querySelectorAll('th').forEach(th => {
+    th.onclick = () => {
+      const col = th.getAttribute('data-col');
+      if (state.sortCol === col) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+      else { state.sortCol = col; state.sortDir = col === 'name' ? 'asc' : 'desc'; }
+      renderTable();
+    };
+  });
+}
+
+// ---------- time series ----------
+function renderTimeSeries() {
+  const kpiKey = state.kpi;
+  const def = DATA.kpiDefinitionen[kpiKey];
+  const years = DATA.meta.berichtsjahre;
+  const wrap = document.getElementById('tsWrap');
+  const vis = visibleBanks();
+  const series = vis.map(b => ({
+    name: b.name, istZielbank: b.istZielbank,
+    points: years.map(y => ({ year: y, value: kpiValue(b, kpiKey, y), cell: kpiCell(b, kpiKey, y) }))
+  })).filter(s => s.points.some(p => p.value !== null));
+
+  if (!series.length) {
+    wrap.innerHTML = '<div class="empty-state">Für „' + def.label + '“ liegen bei keiner sichtbaren Bank Werte für ' + years.join(' oder ') + ' vor.</div>';
+    return;
+  }
+
+  const W = 900, H = 320, padL = 60, padR = 30, padT = 20, padB = 36;
+  const allVals = series.flatMap(s => s.points.map(p => p.value)).filter(v => v !== null);
+  let vMin = Math.min(...allVals), vMax = Math.max(...allVals);
+  if (vMin === vMax) { vMin -= 1; vMax += 1; }
+  const rangePad = (vMax - vMin) * 0.12;
+  vMin -= rangePad; vMax += rangePad;
+  const xFor = (i) => padL + (i / (years.length - 1 || 1)) * (W - padL - padR);
+  const yFor = (v) => padT + (1 - (v - vMin) / (vMax - vMin)) * (H - padT - padB);
+  const unit = unitShort(def.unit);
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;max-width:' + W + 'px;" font-family="system-ui,sans-serif">';
+  // gridlines
+  const gridN = 4;
+  for (let g = 0; g <= gridN; g++) {
+    const v = vMin + (vMax - vMin) * g / gridN;
+    const y = yFor(v);
+    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W-padR) + '" y2="' + y + '" stroke="var(--grid)" stroke-width="1"/>';
+    svg += '<text x="' + (padL - 8) + '" y="' + (y+4) + '" text-anchor="end" font-size="11" fill="var(--text-muted)">' + fmtNum(v) + '</text>';
+  }
+  // x axis labels
+  years.forEach((y, i) => {
+    svg += '<text x="' + xFor(i) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="12" fill="var(--text-secondary)">' + y + '</text>';
+    svg += '<line x1="' + xFor(i) + '" y1="' + padT + '" x2="' + xFor(i) + '" y2="' + (H-padB) + '" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3,3" class="hoverline" data-idx="' + i + '"/>';
+  });
+
+  // peer lines first (so target draws on top)
+  const peerSeries = series.filter(s => !s.istZielbank);
+  const targetSeries = series.filter(s => s.istZielbank);
+  function pathFor(s) {
+    const pts = s.points.filter(p => p.value !== null).map(p => [xFor(years.indexOf(p.year)), yFor(p.value)]);
+    if (pts.length < 2) return null;
+    return 'M' + pts.map(p => p[0]+','+p[1]).join(' L');
+  }
+  peerSeries.forEach(s => {
+    const d = pathFor(s);
+    if (d) svg += '<path d="' + d + '" fill="none" stroke="var(--peer-line)" stroke-width="1.5" opacity="0.75"/>';
+    s.points.forEach(p => { if (p.value !== null) svg += '<circle cx="' + xFor(years.indexOf(p.year)) + '" cy="' + yFor(p.value) + '" r="3" fill="var(--peer-line)"/>'; });
+  });
+  targetSeries.forEach(s => {
+    const d = pathFor(s);
+    if (d) svg += '<path d="' + d + '" fill="none" stroke="var(--accent)" stroke-width="3"/>';
+    s.points.forEach(p => { if (p.value !== null) svg += '<circle cx="' + xFor(years.indexOf(p.year)) + '" cy="' + yFor(p.value) + '" r="5" fill="var(--accent)"/>'; });
+  });
+
+  // hover hit zones per year column
+  years.forEach((y, i) => {
+    const colW = (W - padL - padR) / years.length;
+    const cx = xFor(i);
+    svg += '<rect x="' + (cx - colW/2) + '" y="' + padT + '" width="' + colW + '" height="' + (H-padT-padB) + '" fill="transparent" class="hitzone" data-idx="' + i + '"/>';
+  });
+
+  svg += '</svg>';
+  wrap.innerHTML = svg;
+
+  const svgEl = wrap.querySelector('svg');
+  svgEl.querySelectorAll('.hitzone').forEach(zone => {
+    zone.addEventListener('mousemove', (e) => {
+      const idx = parseInt(zone.getAttribute('data-idx'));
+      const y = years[idx];
+      let rowsHtml = series
+        .map(s => ({ s, p: s.points[idx] }))
+        .filter(x => x.p.value !== null)
+        .sort((a,b) => b.p.value - a.p.value)
+        .map(x => '<div class="tt-row' + (x.s.istZielbank?' target':'') + '"><span>' + x.s.name + '</span><span>' + fmtNum(x.p.value) + ' ' + unit + '</span></div>')
+        .join('');
+      const targetPt = series.find(s=>s.istZielbank);
+      const src = targetPt ? targetPt.points[idx].cell.source : '';
+      showTooltip('<div class="tt-title">' + def.label + ' – ' + y + '</div>' + rowsHtml + (src ? '<div class="tt-src">Quelle (Zielbank): ' + src + '</div>' : ''), e.clientX, e.clientY);
+    });
+    zone.addEventListener('mouseleave', hideTooltip);
+  });
+}
+
+// ---------- insights ----------
+function renderInsights() {
+  document.getElementById('insightYearLabel').textContent = state.year;
+  const target = targetBank();
+  const strengths = [], weaknesses = [];
+  Object.entries(DATA.kpiDefinitionen).forEach(([key, def]) => {
+    if (def.hoeherIstBesser === null) return;
+    const stats = computeStats(key, state.year);
+    if (!stats.target || stats.peerAvg === null) return;
+    const diffPct = stats.peerAvg !== 0 ? ((stats.target.value - stats.peerAvg) / Math.abs(stats.peerAvg)) * 100 : 0;
+    const isBetter = def.hoeherIstBesser ? (stats.target.value > stats.peerAvg) : (stats.target.value < stats.peerAvg);
+    const unit = unitShort(def.unit);
+    const item = {
+      html: '<span class="badge ' + (isBetter?'good':'critical') + '">' + (isBetter?'▲ Stärke':'▼ Schwäche') + '</span> ' +
+            '<span>' + def.label + ': ' + fmtNum(stats.target.value) + ' ' + unit + ' vs. Peer-Ø ' + fmtNum(stats.peerAvg) + ' ' + unit +
+            ' (' + (diffPct>=0?'+':'') + fmtNum(diffPct,1) + '%), Rang ' + stats.rank + '/' + stats.total + '</span>',
+      abs: Math.abs(diffPct)
+    };
+    if (isBetter) strengths.push(item); else weaknesses.push(item);
+  });
+  strengths.sort((a,b)=>b.abs-a.abs);
+  weaknesses.sort((a,b)=>b.abs-a.abs);
+  const sEl = document.getElementById('strengthsList');
+  const wEl = document.getElementById('weaknessesList');
+  sEl.innerHTML = strengths.length ? strengths.map(i => '<div class="insight-item">'+i.html+'</div>').join('') : '<div class="insight-item" style="color:var(--text-muted)">Keine auswertbaren Kennzahlen mit Peer-Vergleich über dem Durchschnitt.</div>';
+  wEl.innerHTML = weaknesses.length ? weaknesses.map(i => '<div class="insight-item">'+i.html+'</div>').join('') : '<div class="insight-item" style="color:var(--text-muted)">Keine auswertbaren Kennzahlen mit Peer-Vergleich unter dem Durchschnitt.</div>';
+}
+
+// ---------- untersuchungsbereiche ----------
+function renderUntersuchungsbereiche() {
+  const grid = document.getElementById('ubGrid');
+  if (!grid || !DATA.untersuchungsbereiche) return;
+  grid.innerHTML = '';
+  DATA.untersuchungsbereiche.forEach((ub, idx) => {
+    const card = document.createElement('div');
+    card.className = 'ub-card';
+    const chipsHtml = ub.abgedeckteKpis.map(k => {
+      const def = DATA.kpiDefinitionen[k];
+      return def ? '<button class="ub-chip" data-kpi="' + k + '">' + def.label + '</button>' : '';
+    }).join('');
+    card.innerHTML =
+      '<div class="ub-title"><span class="ub-num">' + (idx+1) + '</span>' + ub.titel + '</div>' +
+      '<div class="ub-desc">' + ub.beschreibung + '</div>' +
+      (chipsHtml ? '<div class="ub-chips">' + chipsHtml + '</div>' : '<div class="ub-nogap">Keine im Dashboard abgedeckte Kennzahl – rein qualitativer Untersuchungsbereich.</div>') +
+      '<div class="ub-gap"><strong>Datenlücke:</strong> ' + ub.luecke + '</div>';
+    card.querySelectorAll('.ub-chip').forEach(chip => {
+      chip.onclick = () => {
+        state.kpi = chip.getAttribute('data-kpi');
+        renderAll();
+        document.getElementById('kpiPills').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ---------- methodik ----------
+function renderMethodik() {
+  const fl = document.getElementById('fileList');
+  fl.innerHTML = DATA.methodik.verwendeteDateien.map(f => '<div>· ' + f + '</div>').join('');
+  const ll = document.getElementById('limitList');
+  ll.innerHTML = DATA.methodik.einschraenkungen.map(l => '<li>' + l + '</li>').join('');
+}
+
+function renderAll() {
+  buildKpiPills();
+  buildYearToggle();
+  buildPeerFilter();
+  renderTiles();
+  renderRankChart();
+  renderTimeSeries();
+  renderTable();
+  renderInsights();
+}
+
+ensureTooltip();
+renderMethodik();
+renderUntersuchungsbereiche();
+renderAll();
+</script>
+</body>
+</html>
